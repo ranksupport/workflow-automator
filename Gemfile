@@ -9,7 +9,7 @@ gem 'rack-cors'
 gem 'httparty'
 gem 'json'
 gem 'jwt'
-gem 'activerecord', '~> 7.0.0'
+gem 'activerecord', '~> 7.2.2'
 gem 'sinatra-activerecord'
 gem 'rake'
 gem 'bootsnap', require: false
