@@ -1,0 +1,407 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Workflow Automation API Tester</title>
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+            background: #f5f5f5;
+        }
+        .container {
+            background: white;
+            border-radius: 12px;
+            padding: 30px;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.1);
+        }
+        h1 {
+            color: #2c3e50;
+            text-align: center;
+            margin-bottom: 30px;
+        }
+        .endpoint-section {
+            margin-bottom: 40px;
+            padding: 20px;
+            border: 1px solid #e1e8ed;
+            border-radius: 8px;
+            background: #fafbfc;
+        }
+        .endpoint-title {
+            font-size: 18px;
+            font-weight: 600;
+            color: #1a202c;
+            margin-bottom: 15px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        .method {
+            padding: 4px 8px;
+            border-radius: 4px;
+            font-size: 12px;
+            font-weight: 600;
+            color: white;
+        }
+        .get { background: #10b981; }
+        .post { background: #3b82f6; }
+        .test-button {
+            background: #6366f1;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-weight: 500;
+            transition: all 0.2s;
+        }
+        .test-button:hover {
+            background: #4f46e5;
+            transform: translateY(-1px);
+        }
+        .test-button:disabled {
+            background: #9ca3af;
+            cursor: not-allowed;
+            transform: none;
+        }
+        .response {
+            margin-top: 15px;
+            padding: 15px;
+            border-radius: 6px;
+            font-family: 'Monaco', 'Menlo', monospace;
+            font-size: 13px;
+            white-space: pre-wrap;
+            max-height: 300px;
+            overflow-y: auto;
+        }
+        .success {
+            background: #d1fae5;
+            border: 1px solid #10b981;
+            color: #065f46;
+        }
+        .error {
+            background: #fee2e2;
+            border: 1px solid #ef4444;
+            color: #991b1b;
+        }
+        .loading {
+            background: #dbeafe;
+            border: 1px solid #3b82f6;
+            color: #1e40af;
+        }
+        .input-group {
+            margin: 10px 0;
+        }
+        .input-group label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: 500;
+            color: #374151;
+        }
+        .input-group input, .input-group textarea {
+            width: 100%;
+            padding: 8px 12px;
+            border: 1px solid #d1d5db;
+            border-radius: 4px;
+            font-size: 14px;
+        }
+        .input-group textarea {
+            height: 80px;
+            resize: vertical;
+        }
+        .api-key-display {
+            background: #f3f4f6;
+            padding: 10px;
+            border-radius: 4px;
+            font-family: monospace;
+            font-size: 12px;
+            margin-bottom: 20px;
+            border: 1px solid #d1d5db;
+        }
+        .status-indicator {
+            display: inline-block;
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            margin-right: 8px;
+        }
+        .status-success { background: #10b981; }
+        .status-error { background: #ef4444; }
+        .status-loading { background: #3b82f6; animation: pulse 1.5s infinite; }
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.5; }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🔗 Workflow Automation API Tester</h1>
+        
+        <div class="api-key-display">
+            <strong>API Key:</strong> 8bf1d44c94ffb2e6d3003007cd6c00892b96840f8d250a2417d302d358035c4e
+        </div>
+
+        <!-- Public Endpoints -->
+        <div class="endpoint-section">
+            <div class="endpoint-title">
+                <span class="method get">GET</span>
+                Public App List (No API Key Required)
+            </div>
+            <button class="test-button" onclick="testPublicAppList()">
+                <span class="status-indicator" id="status-public-apps"></span>
+                Test Endpoint
+            </button>
+            <div id="response-public-apps" class="response" style="display: none;"></div>
+        </div>
+
+        <div class="endpoint-section">
+            <div class="endpoint-title">
+                <span class="method get">GET</span>
+                Public Events List (No API Key Required)
+            </div>
+            <button class="test-button" onclick="testPublicEvents()">
+                <span class="status-indicator" id="status-public-events"></span>
+                Test Endpoint
+            </button>
+            <div id="response-public-events" class="response" style="display: none;"></div>
+        </div>
+
+        <!-- Authenticated Endpoints -->
+        <div class="endpoint-section">
+            <div class="endpoint-title">
+                <span class="method get">GET</span>
+                App Events with Configuration (API Key Required)
+            </div>
+            <div class="input-group">
+                <label>App ID:</label>
+                <input type="number" id="app-id" value="1" min="1">
+            </div>
+            <button class="test-button" onclick="testAppEvents()">
+                <span class="status-indicator" id="status-app-events"></span>
+                Test Endpoint
+            </button>
+            <div id="response-app-events" class="response" style="display: none;"></div>
+        </div>
+
+        <div class="endpoint-section">
+            <div class="endpoint-title">
+                <span class="method post">POST</span>
+                Execute Service Action Directly (API Key Required)
+            </div>
+            <div class="input-group">
+                <label>Service Name:</label>
+                <input type="text" id="service-name" value="rebrandly">
+            </div>
+            <div class="input-group">
+                <label>Request Body (JSON):</label>
+                <textarea id="execute-body">{"action": "create_link", "destination": "https://example.com", "slashtag": "test"}</textarea>
+            </div>
+            <button class="test-button" onclick="testExecuteService()">
+                <span class="status-indicator" id="status-execute"></span>
+                Test Endpoint
+            </button>
+            <div id="response-execute" class="response" style="display: none;"></div>
+        </div>
+
+        <div class="endpoint-section">
+            <div class="endpoint-title">
+                <span class="method post">POST</span>
+                Trigger Workflow (API Key Required)
+            </div>
+            <div class="input-group">
+                <label>Request Body (JSON):</label>
+                <textarea id="trigger-body">{"service_name": "rebrandly", "action_name": "create_link", "config": {"destination": "https://example.com", "slashtag": "test"}}</textarea>
+            </div>
+            <button class="test-button" onclick="testTrigger()">
+                <span class="status-indicator" id="status-trigger"></span>
+                Test Endpoint
+            </button>
+            <div id="response-trigger" class="response" style="display: none;"></div>
+        </div>
+
+        <div class="endpoint-section">
+            <div class="endpoint-title">
+                <span class="method post">POST</span>
+                Test Integration (API Key Required)
+            </div>
+            <div class="input-group">
+                <label>Request Body (JSON):</label>
+                <textarea id="test-body">{"konnect_id": 1, "config": {"destination": "https://example.com"}}</textarea>
+            </div>
+            <button class="test-button" onclick="testIntegration()">
+                <span class="status-indicator" id="status-test"></span>
+                Test Endpoint
+            </button>
+            <div id="response-test" class="response" style="display: none;"></div>
+        </div>
+    </div>
+
+    <script>
+        const API_KEY = '8bf1d44c94ffb2e6d3003007cd6c00892b96840f8d250a2417d302d358035c4e';
+        const BASE_URL = window.location.origin;
+
+        function setStatus(elementId, status) {
+            const element = document.getElementById(elementId);
+            element.className = `status-indicator status-${status}`;
+        }
+
+        function showResponse(elementId, response, isSuccess) {
+            const element = document.getElementById(elementId);
+            element.style.display = 'block';
+            element.className = `response ${isSuccess ? 'success' : 'error'}`;
+            element.textContent = JSON.stringify(response, null, 2);
+        }
+
+        function showLoading(elementId) {
+            const element = document.getElementById(elementId);
+            element.style.display = 'block';
+            element.className = 'response loading';
+            element.textContent = 'Loading...';
+        }
+
+        async function makeRequest(url, options = {}) {
+            try {
+                const response = await fetch(url, {
+                    ...options,
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-API-Key': API_KEY,
+                        ...options.headers
+                    }
+                });
+                
+                const data = await response.json();
+                return { data, status: response.status, ok: response.ok };
+            } catch (error) {
+                return { error: error.message, status: 0, ok: false };
+            }
+        }
+
+        async function testPublicAppList() {
+            setStatus('status-public-apps', 'loading');
+            showLoading('response-public-apps');
+            
+            const result = await makeRequest(`${BASE_URL}/api/v1/public/app_list`, {
+                headers: {} // No API key for public endpoint
+            });
+            
+            setStatus('status-public-apps', result.ok ? 'success' : 'error');
+            showResponse('response-public-apps', result.data || result.error, result.ok);
+        }
+
+        async function testPublicEvents() {
+            setStatus('status-public-events', 'loading');
+            showLoading('response-public-events');
+            
+            const result = await makeRequest(`${BASE_URL}/api/v1/public/events`, {
+                headers: {} // No API key for public endpoint
+            });
+            
+            setStatus('status-public-events', result.ok ? 'success' : 'error');
+            showResponse('response-public-events', result.data || result.error, result.ok);
+        }
+
+        async function testAppEvents() {
+            const appId = document.getElementById('app-id').value;
+            setStatus('status-app-events', 'loading');
+            showLoading('response-app-events');
+            
+            const result = await makeRequest(`${BASE_URL}/api/v1/external/app/${appId}/events`);
+            
+            setStatus('status-app-events', result.ok ? 'success' : 'error');
+            showResponse('response-app-events', result.data || result.error, result.ok);
+        }
+
+        async function testExecuteService() {
+            const serviceName = document.getElementById('service-name').value;
+            const body = document.getElementById('execute-body').value;
+            
+            setStatus('status-execute', 'loading');
+            showLoading('response-execute');
+            
+            let requestBody;
+            try {
+                requestBody = JSON.parse(body);
+            } catch (e) {
+                setStatus('status-execute', 'error');
+                showResponse('response-execute', { error: 'Invalid JSON in request body' }, false);
+                return;
+            }
+            
+            const result = await makeRequest(`${BASE_URL}/api/v1/external/execute/${serviceName}`, {
+                method: 'POST',
+                body: JSON.stringify(requestBody)
+            });
+            
+            setStatus('status-execute', result.ok ? 'success' : 'error');
+            showResponse('response-execute', result.data || result.error, result.ok);
+        }
+
+        async function testTrigger() {
+            const body = document.getElementById('trigger-body').value;
+            
+            setStatus('status-trigger', 'loading');
+            showLoading('response-trigger');
+            
+            let requestBody;
+            try {
+                requestBody = JSON.parse(body);
+            } catch (e) {
+                setStatus('status-trigger', 'error');
+                showResponse('response-trigger', { error: 'Invalid JSON in request body' }, false);
+                return;
+            }
+            
+            const result = await makeRequest(`${BASE_URL}/api/v1/external/trigger`, {
+                method: 'POST',
+                body: JSON.stringify(requestBody)
+            });
+            
+            setStatus('status-trigger', result.ok ? 'success' : 'error');
+            showResponse('response-trigger', result.data || result.error, result.ok);
+        }
+
+        async function testIntegration() {
+            const body = document.getElementById('test-body').value;
+            
+            setStatus('status-test', 'loading');
+            showLoading('response-test');
+            
+            let requestBody;
+            try {
+                requestBody = JSON.parse(body);
+            } catch (e) {
+                setStatus('status-test', 'error');
+                showResponse('response-test', { error: 'Invalid JSON in request body' }, false);
+                return;
+            }
+            
+            const result = await makeRequest(`${BASE_URL}/api/v1/external/test_and_review`, {
+                method: 'POST',
+                body: JSON.stringify(requestBody)
+            });
+            
+            setStatus('status-test', result.ok ? 'success' : 'error');
+            showResponse('response-test', result.data || result.error, result.ok);
+        }
+
+        // Test server connectivity on page load
+        window.addEventListener('load', async () => {
+            try {
+                const response = await fetch(`${BASE_URL}/health`);
+                if (response.ok) {
+                    console.log('✅ Server is running and accessible');
+                } else {
+                    console.log('⚠️ Server responded but with error status');
+                }
+            } catch (error) {
+                console.log('❌ Server is not accessible:', error.message);
+            }
+        });
+    </script>
+</body>
+</html>
