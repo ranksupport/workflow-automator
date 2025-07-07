@@ -62,7 +62,7 @@ GEM
       activerecord (>= 4.1)
       sinatra (>= 1.0)
     spring (4.3.0)
-    sqlite3 (1.7.3-x86_64-linux)
+    sqlite3 (2.7.2-x86_64-linux-gnu)
     tilt (2.6.0)
     tzinfo (2.0.6)
       concurrent-ruby (~> 1.0)
@@ -85,7 +85,7 @@ DEPENDENCIES
   sinatra
   sinatra-activerecord
   spring
-  sqlite3 (~> 1.4)
+  sqlite3 (~> 2.7)
 
 RUBY VERSION
    ruby 3.1.5p252

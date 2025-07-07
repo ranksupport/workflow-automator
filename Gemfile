@@ -3,7 +3,7 @@ source 'https://rubygems.org'
 ruby '3.1.5'
 
 gem 'sinatra'
-gem 'sqlite3', '~> 1.4'
+gem 'sqlite3', '~> 2.7'
 gem 'puma', '~> 5.0'
 gem 'rack-cors'
 gem 'httparty'
