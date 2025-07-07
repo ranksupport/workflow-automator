@@ -33,7 +33,9 @@ class ApiKeyAuthentication
     end
 
     # Check for API key in headers or params
-    api_key = request.env['HTTP_X_API_KEY'] || request.params['api_key']
+    api_key = request.env['HTTP_X_API_KEY'] || 
+              request.env['HTTP_X_API_KEY'.downcase] ||
+              request.params['api_key']
     
     unless valid_api_key?(api_key)
       return unauthorized_response
@@ -64,7 +66,8 @@ class ApiKeyAuthentication
     
     # Simple validation - check if API key exists and is active
     ApiKey.exists?(key: key, active: true)
-  rescue
+  rescue => e
+    puts "API Key validation error: #{e.message}"
     false
   end
 
@@ -526,6 +529,18 @@ helpers do
       }.to_json
     end
   end
+
+  def parse_request_body
+    request.body.rewind
+    body = request.body.read
+    return {} if body.empty?
+    
+    begin
+      JSON.parse(body)
+    rescue JSON::ParserError
+      {}
+    end
+  end
 end
 
 # Routes
@@ -558,9 +573,11 @@ end
 
 # External API endpoints (API key required)
 post '/api/v1/external/trigger' do
-  service_name = params[:service_name]
-  action_name = params[:action_name]
-  config_params = params[:config] || {}
+  json_params = parse_request_body
+  
+  service_name = json_params['service_name'] || params[:service_name]
+  action_name = json_params['action_name'] || params[:action_name]
+  config_params = json_params['config'] || params[:config] || {}
 
   render_error('Service name is required') unless service_name.present?
 
@@ -573,20 +590,23 @@ post '/api/v1/external/trigger' do
 end
 
 post '/api/v1/external/test_and_review' do
-  if params[:left_app_id].present?
-    left_app_trigger_test_event(params)
+  json_params = parse_request_body
+  merged_params = params.merge(json_params)
+  
+  if merged_params[:left_app_id].present?
+    left_app_trigger_test_event(merged_params)
   else
     begin
-      konnect = Konnect.find(params[:konnect_id])
-      raw_response = konnect.create_right_app_activity(params, current_api_key)
+      konnect = Konnect.find(merged_params[:konnect_id])
+      raw_response = konnect.create_right_app_activity(merged_params, current_api_key)
       content_type :json
       raw_response.to_json
     rescue Exception => e
       content_type :json
       {
-        konnect_id: params[:konnect_id],
-        konnect_activity_id: params[:konnect_activity_id],
-        config_fields: params[:config],
+        konnect_id: merged_params[:konnect_id],
+        konnect_activity_id: merged_params[:konnect_activity_id],
+        config_fields: merged_params[:config],
         raw_response: {},
         error: e.message,
         errors: [],
@@ -611,7 +631,8 @@ end
 
 post '/api/v1/external/execute/:service_name' do
   service_name = params[:service_name]
-  action_params = params.except('splat', 'captures', 'service_name', 'api_key')
+  json_params = parse_request_body
+  action_params = json_params.empty? ? params.except('splat', 'captures', 'service_name', 'api_key') : json_params
 
   begin
     service_class = Object.const_get(service_name.capitalize)
