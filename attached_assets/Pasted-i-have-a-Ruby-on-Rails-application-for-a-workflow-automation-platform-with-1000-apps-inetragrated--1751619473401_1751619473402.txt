@@ -1,0 +1,35 @@
+i have a Ruby on Rails application for a "workflow automation platform" with 1000 apps inetragrated via webhooks/API's > which serves as a backend app to front end react app via API, 
+the main functionality of this backend app is > it connects to 1000 different applications via each_external_app_service.rb files app>model>service>rebrandly.rb which contains specific third party apps api integrations,
+
+am using konnects controller which manages webhooks received and executes created workflows(konnects), konnect model and to manage each external app has models app, app_event(action names/api), app_event configs(data or config required to execute that API) along with app>model>service>rebrandly.rb
+
+I want you to create a Rails app which provies API to trigger externally with the following
+
+> remove user authentication as usual for using Rails API's via just a apikey provided by me 
+> as of now we have public api for two methods without auth token skip_before_action :authorize_request, only: [:public_app_list, :public_events]
+> create a new controller which just triggers each respective each_external_app_service.rb file API like app>model>service>rebrandly.rb for all actions provided inside each service.rb file to be precise this action
+ "def test_and_review
+    if params[:left_app_id].present?
+      left_app_trigger_test_event(params)
+    else
+      begin
+        konnect = Konnect.find(params[:konnect_id])
+        raw_response = konnect.create_right_app_activity(params, current_user)
+        render json: raw_response
+      rescue Exception => e
+        render json: {
+         konnect_id: params[:konnect_id],
+         konnect_activity_id: params[:konnect_activity_id],
+         config_fields: params[:config],
+         raw_response: {},
+         error: e.message,
+         errors: [],
+         test_status: "Failure",
+       }
+     end
+   end
+  end"
+  
+  we are using now to test the API during create konnect/workflow
+  
+  am attaching you the few important controllers, models and routes.rb for reference
