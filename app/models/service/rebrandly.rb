@@ -51,9 +51,18 @@ class Rebrandly < BaseService
 
   private
 
+  def get_api_key(params)
+    # Priority: user-provided API key > environment variable > nil
+    user_api_key = params[:rebrandly_api_key] || params['rebrandly_api_key'] || 
+                   params[:api_key] || params['api_key']
+    user_api_key || @api_key
+  end
+
   def create_link(params)
-    # Check if we have a real API key, if not return mock response
-    if @api_key.nil? || @api_key.empty?
+    api_key = get_api_key(params)
+    
+    # If no API key provided, return mock response
+    if api_key.nil? || api_key.empty?
       return mock_create_link_response(params)
     end
 
@@ -68,12 +77,12 @@ class Rebrandly < BaseService
     begin
       # Make authenticated request to Rebrandly API
       response = HTTParty.post(
-        "#{@base_url}/links",
+        "#{self.class.base_url}/links",
         {
           body: payload.to_json,
           headers: {
             'Content-Type' => 'application/json',
-            'apikey' => @api_key  # Rebrandly uses 'apikey' header, not 'Authorization'
+            'apikey' => api_key  # Rebrandly uses 'apikey' header
           }
         }
       )
@@ -91,7 +100,9 @@ class Rebrandly < BaseService
   end
 
   def get_link(params)
-    if @api_key.nil? || @api_key.empty?
+    api_key = get_api_key(params)
+    
+    if api_key.nil? || api_key.empty?
       return mock_get_link_response(params)
     end
 
@@ -100,10 +111,10 @@ class Rebrandly < BaseService
 
     begin
       response = HTTParty.get(
-        "#{@base_url}/links/#{link_id}",
+        "#{self.class.base_url}/links/#{link_id}",
         {
           headers: {
-            'apikey' => @api_key
+            'apikey' => api_key
           }
         }
       )
@@ -119,7 +130,9 @@ class Rebrandly < BaseService
   end
 
   def update_link(params)
-    if @api_key.nil? || @api_key.empty?
+    api_key = get_api_key(params)
+    
+    if api_key.nil? || api_key.empty?
       return mock_update_link_response(params)
     end
 
@@ -134,12 +147,12 @@ class Rebrandly < BaseService
 
     begin
       response = HTTParty.post(
-        "#{@base_url}/links/#{link_id}",
+        "#{self.class.base_url}/links/#{link_id}",
         {
           body: payload.to_json,
           headers: {
             'Content-Type' => 'application/json',
-            'apikey' => @api_key
+            'apikey' => api_key
           }
         }
       )
@@ -155,7 +168,9 @@ class Rebrandly < BaseService
   end
 
   def delete_link(params)
-    if @api_key.nil? || @api_key.empty?
+    api_key = get_api_key(params)
+    
+    if api_key.nil? || api_key.empty?
       return mock_delete_link_response(params)
     end
 
@@ -164,10 +179,10 @@ class Rebrandly < BaseService
 
     begin
       response = HTTParty.delete(
-        "#{@base_url}/links/#{link_id}",
+        "#{self.class.base_url}/links/#{link_id}",
         {
           headers: {
-            'apikey' => @api_key
+            'apikey' => api_key
           }
         }
       )
@@ -183,7 +198,9 @@ class Rebrandly < BaseService
   end
 
   def list_links(params = {})
-    if @api_key.nil? || @api_key.empty?
+    api_key = get_api_key(params)
+    
+    if api_key.nil? || api_key.empty?
       return mock_list_links_response(params)
     end
 
@@ -196,10 +213,10 @@ class Rebrandly < BaseService
     
     begin
       response = HTTParty.get(
-        "#{@base_url}/links#{query_string}",
+        "#{self.class.base_url}/links#{query_string}",
         {
           headers: {
-            'apikey' => @api_key
+            'apikey' => api_key
           }
         }
       )
@@ -243,7 +260,7 @@ class Rebrandly < BaseService
       "createdAt" => Time.now.iso8601,
       "updatedAt" => Time.now.iso8601,
       "_mock" => true,
-      "_message" => "This is a mock response for testing purposes. Set REBRANDLY_API_KEY environment variable for real API calls."
+      "_message" => "This is a mock response for testing purposes. Provide 'rebrandly_api_key' parameter for real API calls."
     }
   end
 
@@ -274,7 +291,7 @@ class Rebrandly < BaseService
       "createdAt" => Time.now.iso8601,
       "updatedAt" => Time.now.iso8601,
       "_mock" => true,
-      "_message" => "This is a mock response for testing purposes. Set REBRANDLY_API_KEY environment variable for real API calls."
+      "_message" => "This is a mock response for testing purposes. Provide 'rebrandly_api_key' parameter for real API calls."
     }
   end
 
@@ -307,7 +324,7 @@ class Rebrandly < BaseService
       "createdAt" => (Time.now - 3600).iso8601,
       "updatedAt" => Time.now.iso8601,
       "_mock" => true,
-      "_message" => "This is a mock response for testing purposes. Set REBRANDLY_API_KEY environment variable for real API calls."
+      "_message" => "This is a mock response for testing purposes. Provide 'rebrandly_api_key' parameter for real API calls."
     }
   end
 
@@ -316,7 +333,7 @@ class Rebrandly < BaseService
       "success" => true,
       "message" => "Link deleted successfully",
       "_mock" => true,
-      "_message" => "This is a mock response for testing purposes. Set REBRANDLY_API_KEY environment variable for real API calls."
+      "_message" => "This is a mock response for testing purposes. Provide 'rebrandly_api_key' parameter for real API calls."
     }
   end
 
@@ -355,7 +372,7 @@ class Rebrandly < BaseService
       "links" => links,
       "count" => links.length,
       "_mock" => true,
-      "_message" => "This is a mock response for testing purposes. Set REBRANDLY_API_KEY environment variable for real API calls."
+      "_message" => "This is a mock response for testing purposes. Provide 'rebrandly_api_key' parameter for real API calls."
     }
   end
 
