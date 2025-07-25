@@ -25,7 +25,7 @@ GEM
       multi_xml (>= 0.5.2)
     i18n (1.14.7)
       concurrent-ruby (~> 1.0)
-    json (2.12.2)
+    json (2.13.1)
     jwt (3.1.2)
       base64
     listen (3.9.0)
